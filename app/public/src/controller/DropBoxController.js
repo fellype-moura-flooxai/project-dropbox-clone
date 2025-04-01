@@ -36,7 +36,7 @@ class DropBoxController {
           };
           firebase.initializeApp(config);
 
-        }
+        }  
 
           getSelection(){
 
@@ -44,9 +44,26 @@ class DropBoxController {
 
           }
 
-        }
-
     initEvents(){
+
+        this.btnRename.addEventListener('click', e=>{
+
+            let li = this.getSelection()[0];
+
+            let file = JSON.parse(li.dataset.file);
+
+            let name = prompt("Renomear o arquivo:", file.name);
+
+            if (name) {
+
+                file.name = name;
+
+                this.getFirebaseRef().child(li.dataset.key).set(file);
+
+            }
+
+
+        });
 
         this.listFilesEl.addEventListener('selectionchange', e => {
 
@@ -371,6 +388,7 @@ class DropBoxController {
         let li = document.crateElement('li');
 
         li.dataset.key = key;
+        li.dataset.file = JSON.stringify(file);
 
         li.innerHTML =`
            ${this.getFileIconView(file)}
