@@ -56,6 +56,8 @@ class DropBoxController {
 
                 folderRef.on('value', snapshot => {
 
+                    folderRef.off('value');
+
                     snapshot.forEach(item => {
 
                         let data = item.val();
@@ -96,7 +98,7 @@ class DropBoxController {
                     });
 
                     folderRef.remove();
-                    folderRef.off('value');
+                    
 
                 });
 
@@ -712,7 +714,7 @@ class DropBoxController {
                 break;
 
                 default:
-                window.open('/file?path=' + file.path);
+                window.open(file.path);
 
             }
 
