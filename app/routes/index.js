@@ -11,7 +11,7 @@ router.get('/', function(req, res, next) {
 router.delete('/file', (req, res)=>{
 
   let form = new formidable.IncomingForm({
-    uploadDir: '/upload',
+    uploadDir: './upload',
     keepExtensions: true
   });
 
@@ -19,7 +19,7 @@ router.delete('/file', (req, res)=>{
 
     let path = './' + fields.path;
 
-    if (fs.existsSync(fields.path)) {
+    if (fs.existsSync(path)) {
 
       fs.unlink(path, err=>{
 
@@ -44,10 +44,10 @@ router.delete('/file', (req, res)=>{
 
 });
 
-router.post('upload', (req, res) => {
+router.post('/upload', (req, res) => {
 
   let form = new formidable.IncomingForm({
-    uploadDir: '/upload',
+    uploadDir: './upload',
     keepExtensions: true
   });
 
