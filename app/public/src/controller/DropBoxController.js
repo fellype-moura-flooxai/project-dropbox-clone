@@ -57,12 +57,26 @@ class DropBoxController {
             let file = JSON.parse(li.dataset.file);
             let key = li.dataset.key;
 
-            let formData = new FormData();
+            promises.push(new promises((resolve, reject) => {
 
-            formData.append('path', file.path);
-            formData.append('key', key);
+              let fileRef = firebase.storage().ref(this.currentFolder.join('/')) .child(file.name);
 
-            promises.push(this.ajax('/file', 'DELETE', FormData));
+              fileRef.delete().then(()=>{
+
+                resolve({
+                    fields:{
+                        key
+                    }
+
+                });
+
+              }).catch(err=>{
+
+                reject(err);
+
+              });
+
+            }));
 
         });
 
@@ -162,12 +176,31 @@ class DropBoxController {
 
         this.inputFilesEl.addEventListener('change', event => {
 
-            this.uploadTask(event.target.files) 
+            this.btnSendFileEl.disabled = true;
+
+            this.uploadTask(event.target.files).then(responses => {
+
+                responses.forEach(resp => {
+
+                    this.getFirebaseRef().push().set({
+                        name: resp.name,
+                        type: resp.contentType,
+                        path: resp.downloadURLs[0],
+                        size: resp.size
+                    });
+
+                });
+                
+                this.uploadComplete();
+
+            }).catch(err => {
+
+                this.uploadComplete();
+                console.error(err);
+
+            });
 
             this.modalShow();
-
-            this.inputFilesEl.value = '';
-            
 
         });
 
@@ -243,19 +276,43 @@ class DropBoxController {
 
         [...files].forEach(file=>{
 
-            let formData = new FormData();
+            
 
-                formData.append('input-file', file);
+            promises.push(new promises ((resolve, reject) => {
 
-            promises.push(this.ajax('/upload', 'POST', FormData, ()=>{
+         let fileRef = firebase.storage().ref(this.currentFolder.join('/')).child(file.name);
 
-                this.uploadProgress(event, file);
+         let task = fileRef.put(file);
 
-            }, ()=>{
+         task.on('state_changed', snapshot => {
 
-                this.startUploadTime = Date.now();
+            this.uploadProgress({
+                loaded: snapshot.bytesTransferred,
+                total: snapshot.totalBytes
+            }, file);
+
+         }, error => {
+
+            console.error(error);
+            reject(error);
+
+         }, () => {
+
+            fileRef.getMetadata().the(metadata => {
+
+                resolve(metadata);
+
+            }).catch(err => {
+
+                reject(err);
+            })
+
+            
+
+         });
 
             }));
+
         });
 
         return Promise.all(promises);
